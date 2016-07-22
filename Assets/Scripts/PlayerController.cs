@@ -34,9 +34,9 @@ public class PlayerController : MonoBehaviour {
 				movement -= cameraRef.right;
 			}
 #else
-			if (Input.touchCount == 1) {
-				movement += cameraRef.forward;
-			}
+			float input = Input.GetAxis("Vertical") + Input.GetAxis("Fire1");
+			input = Mathf.Clamp(input, -1, 1);
+			movement = cameraRef.forward * input;
 #endif
 			movement.y = 0;
 			movement.Normalize();
