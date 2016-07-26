@@ -1,49 +1,52 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour {
+public class PlayerController : MonoBehaviour
+{
+	[SerializeField] private Transform _camera;
+	[SerializeField] private CharacterController _character;
+	[SerializeField] private float _moveSpeed = 5f;
+	[SerializeField] private float _rotationSpeed = 5f;
 
-	public Transform cameraRef;
-	public float MoveSpeed = 5;
-	// Use this for initialization
-	void Start () {
-		charCont = GetComponent<CharacterController>();
-		_initiated = cameraRef != null;
+
+	private void Awake()
+	{
+		if(_character == null)
+			_character = GetComponent<CharacterController>();
+		if (_camera == null)
+			_camera = GetComponentInChildren<Camera>().transform;
+
+		enabled = _camera != null;
 	}
+
+	private void OnDestroy()
+	{
+		_camera = null;
+		_character = null;
+	}
+
 	
 	// Update is called once per frame
-	void Update () {
-		if (_initiated) {
-			Vector3 movement = Vector3.zero;
-#if UNITY_EDITOR
-			if (Input.GetKey(KeyCode.UpArrow))
-			{
-				movement += cameraRef.forward;
-			}
-			else if (Input.GetKey(KeyCode.DownArrow))
-			{
-				movement -= cameraRef.forward;
-			}
-			if (Input.GetKey(KeyCode.RightArrow))
-			{
-				movement += cameraRef.right;
-			}
-			else if (Input.GetKey(KeyCode.LeftArrow))
-			{
-				movement -= cameraRef.right;
-			}
-#else
-			float input = Input.GetAxis("Vertical") + Input.GetAxis("Fire1");
-			input = Mathf.Clamp(input, -1, 1);
-			movement = cameraRef.forward * input;
-#endif
-			movement.y = 0;
-			movement.Normalize();
-			charCont.SimpleMove(movement * MoveSpeed);	//needs speed vector, not displacement vector
-		}
+	private void Update ()
+	{
+		bool mustStrafe = Input.GetButton("Must Strafe");
+
+		float h = Input.GetAxis("Horizontal");
+		h = Mathf.Clamp(h, -1, 1);
+
+		float v = Input.GetAxis("Vertical");
+		v = Mathf.Clamp(v, -1, 1);
+
+			
+		Vector3 movement = v * _camera.forward;
+		if (mustStrafe)
+			movement += h * _camera.right;
+
+		movement.y = 0;
+		_character.SimpleMove(movement * _moveSpeed * Time.deltaTime);	
+
+		if(!mustStrafe)
+			_character.transform.Rotate(0f, h * _rotationSpeed * Time.deltaTime, 0f);
 	}
 
-	private CharacterController charCont;
-	private bool _initiated;
 }
