@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
 	[SerializeField] private Transform _camera;
 	[SerializeField] private CharacterController _character;
-	[SerializeField] private float _moveSpeed = 5f;
-	[SerializeField] private float _rotationSpeed = 5f;
+	[SerializeField, Range(0f, 50f)] private float _moveSpeedMax = 5f;
+	[SerializeField, Range(0f, 500f)] private float _lookSpeedMax = 5f;
+	private Vector3 _moveDir;
 
 
 	private void Awake()
@@ -29,7 +31,7 @@ public class PlayerController : MonoBehaviour
 	// Update is called once per frame
 	private void Update ()
 	{
-		bool mustStrafe = Input.GetButton("Must Strafe");
+		bool mustStrafe = Input.GetButton("Strafe Mode");
 
 		float h = Input.GetAxis("Horizontal");
 		h = Mathf.Clamp(h, -1, 1);
@@ -37,16 +39,16 @@ public class PlayerController : MonoBehaviour
 		float v = Input.GetAxis("Vertical");
 		v = Mathf.Clamp(v, -1, 1);
 
-			
-		Vector3 movement = v * _camera.forward;
+		_moveDir = v * _camera.forward;
 		if (mustStrafe)
-			movement += h * _camera.right;
+			_moveDir += h * _camera.right;
+		_moveDir.y = 0;
 
-		movement.y = 0;
-		_character.SimpleMove(movement * _moveSpeed * Time.deltaTime);	
+		if (!mustStrafe)
+			_character.transform.Rotate(0f, h * _lookSpeedMax * Time.deltaTime, 0f);
 
-		if(!mustStrafe)
-			_character.transform.Rotate(0f, h * _rotationSpeed * Time.deltaTime, 0f);
+		_character.SimpleMove(_moveDir * _moveSpeedMax);	
 	}
 
+	
 }
